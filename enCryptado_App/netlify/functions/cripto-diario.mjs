@@ -27,12 +27,25 @@ const sortedL = s => [...s].sort().join("");
 const frags = s => String(s || "").split("/").map(x => x.trim()).filter(Boolean);
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
+/* Acepta la clave privada pegada de varias formas: con o sin comillas,
+   con "\n" escritos o con saltos de línea reales, o incluso en una sola línea. */
+function cleanKey(raw) {
+  let k = String(raw || "").trim();
+  const m0 = k.match(/"private_key"\s*:\s*"([^"]+)"/);
+  if (m0) k = m0[1];
+  k = k.replace(/^["']+|["',]+$/g, "").replace(/\\n/g, "\n").replace(/\r/g, "");
+  const m = k.match(/-----BEGIN PRIVATE KEY-----([\s\S]*?)-----END PRIVATE KEY-----/);
+  if (!m) throw new Error("FIREBASE_PRIVATE_KEY no contiene «-----BEGIN PRIVATE KEY-----» y «-----END PRIVATE KEY-----». Vuelve a copiarla.");
+  const body = m[1].replace(/[^A-Za-z0-9+/=]/g, "");
+  return "-----BEGIN PRIVATE KEY-----\n" + body.match(/.{1,64}/g).join("\n") + "\n-----END PRIVATE KEY-----\n";
+}
+
 function db() {
   if (!getApps().length) {
     initializeApp({ credential: cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
+      privateKey: cleanKey(process.env.FIREBASE_PRIVATE_KEY),
     }) });
   }
   return getFirestore();
