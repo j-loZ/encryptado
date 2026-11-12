@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>enCryptado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14110f; --panel:#1e1a17; --panel2:#272220; --line:#3a332e;
+    --ink:#f3ebe0; --muted:#a89c8d; --accent:#e8a33d; --accent-ink:#1b1408;
+    --ok:#5cc98a; --bad:#e2625a;
+    --def:#3d7bd9; --ind:#d9663d; --mat:#9b5fd0;
+    --paper:#efe4cf; --paper-ink:#2b241c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  button{font:inherit;cursor:pointer;border:none}
+  .wrap{max-width:640px;margin:0 auto;padding:0 18px 48px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 10px}
+  .brand{font-family:Fraunces,serif;font-weight:700;font-size:28px;letter-spacing:-.5px}
+  .brand span{color:var(--accent)}
+  .icon-btn{width:40px;height:40px;border-radius:50%;background:var(--panel2);color:var(--ink);font-weight:600;font-size:17px;display:grid;place-items:center}
+  .icon-btn:hover{background:var(--line)}
+  .hdr-right{display:flex;gap:8px}
+  .date{color:var(--muted);font-size:14px;margin-bottom:16px}
+  .admin-bar{display:none;align-items:center;justify-content:space-between;gap:10px;background:#2b2210;border:1px solid #5a4520;color:var(--accent);padding:10px 14px;border-radius:12px;font-size:14px;margin-bottom:14px}
+  .admin-bar.on{display:flex}
+  .admin-bar button{background:none;color:var(--accent);text-decoration:underline;padding:0}
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tab{flex:1;padding:10px;border-radius:12px;background:var(--panel);color:var(--muted);font-weight:600;font-size:15px;border:1px solid var(--line)}
+  .tab.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .tab .tick{color:var(--ok);margin-left:4px}
+  .tab.active .tick{color:#1d7a46}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 20px}
+  @media (max-width:400px){.card{padding:18px 14px}.letter{padding:18px 16px 6px}}
+  .meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-bottom:14px}
+  .clue{font-family:Fraunces,serif;font-weight:500;font-size:clamp(24px,6vw,32px);line-height:1.25;margin:0 0 22px}
+  .clue mark{background:none;color:inherit;border-radius:4px;padding:0 2px;transition:all .25s}
+  .clue mark.show-d{background:color-mix(in srgb,var(--def) 30%,transparent);box-shadow:inset 0 -3px 0 var(--def)}
+  .clue mark.show-i{background:color-mix(in srgb,var(--ind) 30%,transparent);box-shadow:inset 0 -3px 0 var(--ind)}
+  .clue mark.show-m{background:color-mix(in srgb,var(--mat) 30%,transparent);box-shadow:inset 0 -3px 0 var(--mat)}
+  .boxes{display:grid;grid-template-columns:repeat(var(--n),minmax(0,44px));gap:clamp(4px,1.6vw,7px);margin-bottom:10px}
+  .boxes input{width:100%;aspect-ratio:44/52;height:auto;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);text-align:center;font:600 22px Inter,sans-serif;text-transform:uppercase;caret-color:var(--accent);padding:0}
+  .boxes input:focus{outline:none;border-color:var(--accent)}
+  .boxes input.rev{border-color:var(--accent);color:var(--accent)}
+  .boxes.ok input{border-color:var(--ok);color:var(--ok);background:#0f2318}
+  .shake{animation:shake .35s}
+  @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .status{font-size:14px;color:var(--muted);min-height:20px;margin-bottom:14px}
+  .status.bad{color:var(--bad)} .status.good{color:var(--ok)}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .primary{background:var(--accent);color:var(--accent-ink);font-weight:600;padding:12px 22px;border-radius:12px}
+  .primary:disabled{opacity:.4;cursor:default}
+  .ghost{background:transparent;color:var(--muted);padding:12px 14px;border-radius:12px;border:1px solid var(--line)}
+  .hints-title{font-size:13px;color:var(--muted);margin:0 0 8px;text-transform:uppercase;letter-spacing:.08em}
+  .hints{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .hint{background:var(--panel2);color:var(--ink);padding:11px 12px;border-radius:12px;text-align:left;font-size:14px;border:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .hint .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .hint.used{opacity:.55}
+  .hint:disabled{cursor:default}
+  .hint small{display:block;color:var(--muted);font-size:12px}
+  .note{margin-top:12px;font-size:14px;color:var(--muted);min-height:0}
+  .explain{display:none;margin-top:18px;padding:16px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);font-size:15px;line-height:1.5}
+  .explain.on{display:block}
+  .explain h3{margin:0 0 6px;font-family:Fraunces,serif;font-size:22px}
+  .explain .k{font-size:13px;color:var(--muted)}
+  .explain ul{margin:8px 0 0;padding-left:18px}
+  .explain li{margin-bottom:6px}
+  .share{margin-top:10px}
+  .form label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
+  .form input,.form textarea,.form select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:15px}
+  .form textarea{min-height:64px;resize:vertical}
+  .form input:focus,.form textarea:focus,.form select:focus{outline:none;border-color:var(--accent)}
+  .hint-txt{font-size:12px;color:var(--muted);margin-top:4px}
+  .preview{margin:16px 0 12px;padding:14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+  .preview .clue{font-size:21px;margin:0}
+  .preview .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+  .errs{color:var(--bad);font-size:13px;margin:10px 0 0;padding-left:18px}
+  .okline{color:var(--ok);font-size:13px;margin-top:10px}
+  a.primary{display:inline-block;text-decoration:none}
+  a.primary.off{opacity:.4;pointer-events:none}
+  .admin-sec{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:22px}
+  .admin-sec h2{font-family:Fraunces,serif;font-size:22px;margin:0 0 6px}
+  .admin-sec details{margin:10px 0 4px;font-size:14px;color:var(--muted)}
+  .admin-sec summary{cursor:pointer;color:var(--accent)}
+  .mini{font-size:13px;padding:7px 10px;border-radius:8px;background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+  .cust{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);padding:10px 12px;border-radius:12px;margin-bottom:6px;font-size:14px}
+  .cust.today{border-color:var(--accent)}
+  .cust{flex-wrap:wrap}
+  .cust .c{flex:1 1 55%;min-width:0;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cust .d{flex:none;width:86px;color:var(--muted);font-size:13px}
+  .countdown{text-align:center;color:var(--muted);font-size:14px;margin-top:22px}
+  .countdown b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  /* Caso */
+  .caso-title{font-family:Fraunces,serif;font-size:26px;margin:0 0 12px;line-height:1.2}
+  .alerta{background:#2a1513;border:1px solid #5b2a25;color:#f0b4ac;border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.45;margin-bottom:16px}
+  .alerta b{color:#ffd2cc}
+  .ctx{font-size:15px;line-height:1.55;color:#d9cfc2;margin:0 0 18px}
+  .tag{display:inline-block;margin-left:8px;padding:2px 7px;border-radius:6px;background:var(--bad);color:#1a0b09;font-size:11px;font-weight:700;letter-spacing:.1em;vertical-align:1px}
+  .letter{background:var(--paper);color:var(--paper-ink);border-radius:6px;padding:22px 22px 10px;font-family:"Special Elite","Courier New",monospace;font-size:15.5px;line-height:1.6;box-shadow:0 10px 30px rgba(0,0,0,.35);transform:rotate(-.4deg);margin-bottom:22px}
+  .letter p{margin:0 0 14px}
+  .fields{display:grid;gap:10px;margin-bottom:10px}
+  .field{display:grid;grid-template-columns:62px 1fr 26px;align-items:center;gap:10px}
+  .field label{font-weight:600;font-size:14px;color:var(--muted)}
+  .field input{width:100%;padding:12px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);font:500 16px Inter,sans-serif}
+  .field input:focus{outline:none;border-color:var(--accent)}
+  .field.ok input{border-color:var(--ok);color:var(--ok);background:#0f2318}
+  .field.bad input{border-color:var(--bad)}
+  .field .mk{font-size:18px;text-align:center}
+  .field.ok .mk{color:var(--ok)} .field.bad .mk{color:var(--bad)}
+
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
+  .modal.on{display:flex}
+  .sheet{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:520px;width:100%;max-height:86vh;overflow:auto}
+  .sheet h2{font-family:Fraunces,serif;margin:0 0 10px}
+  .sheet h4{font-family:Fraunces,serif;font-size:18px;margin:18px 0 4px}
+  .sheet p,.sheet li{color:#d9cfc2;line-height:1.5;font-size:15px}
+  .sheet input[type=password]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;margin:8px 0 12px}
+  .sheet .row{display:flex;gap:8px;justify-content:flex-end}
+  .legend{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .archive{display:none;margin-top:20px}
+  .archive.on{display:block}
+  .archive h2{font-family:Fraunces,serif;font-size:22px;margin:18px 0 10px}
+  .arch-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:12px 14px;border-radius:12px;margin-bottom:6px;text-align:left;font-size:14px}
+  .arch-item .c{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .arch-item .s{flex:none;font-size:13px}
+  .arch-item.today{border-color:var(--accent)}
+  .back{background:none;color:var(--accent);padding:0;margin-bottom:12px;display:none}
+  .back.on{display:inline-block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">en<span>Crypt</span>ado</div>
+    <div class="hdr-right">
+      <button class="icon-btn" id="btnSend" aria-label="Envía tu cripto" title="Envía tu cripto">✎</button>
+      <button class="icon-btn" id="btnAdmin" aria-label="Administrador" title="Administrador">⚿</button>
+      <button class="icon-btn" id="btnHelp" aria-label="Cómo se juega" title="Cómo se juega">?</button>
+    </div>
+  </header>
+  <div class="date" id="date"></div>
+  <div class="admin-bar" id="adminBar"><span>Modo administrador: tienes acceso a todos los juegos.</span><button id="btnLogout">Salir</button></div>
+
+  <button class="back" id="btnBack">← Volver a los juegos de hoy</button>
+  <div class="tabs" id="tabs"></div>
+  <div class="card" id="card"></div>
+
+  <div class="countdown" id="countdown"></div>
+
+  <div id="adminEditor"></div>
+  <div class="archive" id="pendingList"></div>
+  <div class="archive" id="customList"></div>
+  <div class="archive" id="archive"></div>
+</div>
+
+<div class="modal" id="helpModal">
+  <div class="sheet">
+    <h2>Cómo se juega</h2>
+    <p>Cada día hay <b>dos juegos nuevos</b> (cambian a medianoche, en tu hora local): una <b>palabra</b> y un <b>caso</b>.</p>
+    <h4>La palabra</h4>
+    <p>Una pista críptica con dos caminos hacia la misma palabra:</p>
+    <ul>
+      <li><span class="legend" style="background:var(--def)"></span><b>Definición</b>: un sinónimo de la respuesta, casi siempre al principio o al final.</li>
+      <li><span class="legend" style="background:var(--ind)"></span><b>Indicador</b>: avisa del truco («revuelto», «al revés», «oculto en», «al principio», «se oye»…).</li>
+      <li><span class="legend" style="background:var(--mat)"></span><b>Relleno</b>: el material con el que se construye la palabra.</li>
+    </ul>
+    <p>El número entre paréntesis indica cuántas letras tiene la solución. Si te atascas, puedes pedir que te marquen la definición, el indicador o el relleno, o que te revelen una letra.</p>
+    <p><b>Ejemplo:</b> <i>Patria en revuelta por un ladrón del mar (6)</i> → «en revuelta» indica un anagrama de PATRIA, y «un ladrón del mar» lo define: <b>PIRATA</b>.</p>
+    <h4>El caso</h4>
+    <p>Una carta escrita bajo vigilancia que esconde el <b>día</b>, la <b>hora</b> y el <b>lugar</b> de un rescate. La propia carta suele decir, de forma disimulada, en qué partes hay que fijarse; allí cada dato aparece como una pequeña pista críptica. Los casos no tienen ayudas: tómatelo con calma.</p>
+    <p>La hora puedes escribirla como quieras: «14:30», «2:30» o «dos y media».</p>
+    <h4>¿Se te ocurre una palabra?</h4>
+    <p>Pulsa ✎ arriba para escribir tu propio cripto y enviárnoslo. Si lo validamos, saldrá como palabra del día.</p>
+    <div class="row"><button class="primary" data-close>¡A jugar!</button></div>
+  </div>
+</div>
+
+<div class="modal" id="sendModal">
+  <div class="sheet">
+    <h2>Envía tu cripto</h2>
+    <p>Escribe tu pista y marca qué parte es la definición, cuál el indicador y cuál el relleno. Abajo verás si está bien construida. Si la validamos, saldrá como palabra del día.</p>
+    <div id="sendForm"></div>
+    <div class="actions">
+      <a class="primary off" id="sMail" href="#">Enviar por correo</a>
+      <button class="ghost" id="sCopy">Copiar texto</button>
+      <button class="ghost" data-close>Cerrar</button>
+    </div>
+    <p class="hint-txt">«Enviar por correo» abre tu aplicación de correo con el mensaje ya escrito; solo tienes que pulsar enviar. Si no se abre, copia el texto y mándalo a <b>j.lozvil@gmail.com</b>.</p>
+  </div>
+</div>
+
+<script>
+/* ===== Banco de palabras (un cripto por día) =====
+   Formato de la pista: {d|definición} {i|indicador} {m|relleno} */
+const BANK = [
+  {a:"PIRATA", lvl:"Fácil", clue:"{m|Patria} {i|en revuelta} por {d|un ladrón del mar} (6)",
+   ex:"Anagrama. «En revuelta» indica que hay que revolver las letras de PATRIA. La definición es «un ladrón del mar»."},
+  {a:"PERO", lvl:"Difícil", clue:"{m|Can} {i|sin corazón}, {d|sin embargo} (4)",
+   ex:"Eliminación. Un «can» es un PERRO; «sin corazón» le quita la letra central (la segunda R) y queda PERO, que significa «sin embargo»."},
+  {a:"CASTOR", lvl:"Fácil", clue:"{i|Mal} {m|cortas} al {d|roedor} (6)",
+   ex:"Anagrama. «Mal» indica que las letras de CORTAS están mal colocadas: reordenadas dan CASTOR, un roedor."},
+  {a:"CREO", lvl:"Difícil", clue:"{d|Pienso} que {m|el cordero} {i|va dando saltos} (4)",
+   ex:"Letras alternas. «Va dando saltos» indica que tomes una letra sí y otra no: CoRdErO → CREO. «Pienso» es la definición (no el pienso del cordero)."},
+  {a:"ALMA", lvl:"Fácil", clue:"{d|Ánima} {i|escondida en} la {m|sal marina} (4)",
+   ex:"Palabra oculta. Está escondida en «s-AL MA-rina». «Ánima» es la definición."},
+  {a:"LOCURA", lvl:"Difícil", clue:"{m|Lo sana}: ¡qué {d|disparate}! (6)",
+   ex:"Charada (sin indicador). «Lo sana» = LO CURA. Juntas forman LOCURA, que es un disparate."},
+  {a:"ANIMAL", lvl:"Fácil", clue:"{m|Lámina} {i|girada} muestra una {d|bestia} (6)",
+   ex:"Lectura al revés. «Girada» indica que leas LÁMINA al revés: ANIMAL. La definición es «bestia»."},
+  {a:"BARCO", lvl:"Difícil", clue:"{d|Navío}: {m|Baco} {i|acoge} {m|al rey} (5)",
+   ex:"Contenedor. BACO (el dios del vino) «acoge» al rey, que en notación de ajedrez es R: BA-R-CO = BARCO, un navío."},
+  {a:"TIO", lvl:"Mediano", clue:"{d|Pariente} que aparece {i|a saltos} en el {m|trigo} (3)",
+   ex:"Letras alternas. «A saltos» indica que tomes una letra sí y otra no: TrIgO → TÍO, un pariente."},
+  {a:"CORSETE", lvl:"Difícil", clue:"{m|Secreto} {i|mal guardado} en una {d|prenda ajustada} (7)",
+   ex:"Anagrama. «Mal guardado» indica que las letras de SECRETO están desordenadas: dan CORSETE, una prenda ajustada."},
+  {a:"VACA", lvl:"Mediano", clue:"{i|Se oye} que el {m|portaequipajes} {d|da leche} (4)",
+   ex:"Homófono. El portaequipajes del coche es la BACA; «se oye» indica que busques una palabra que suene igual: VACA, que da leche."},
+  {a:"NADA", lvl:"Difícil", clue:"{m|El primer hombre}, {i|al revés}, no es {d|ninguna cosa} (4)",
+   ex:"Lectura al revés. El primer hombre es ADÁN; al revés se lee NADA, es decir, ninguna cosa."},
+  {a:"SOL", lvl:"Fácil", clue:"{i|Al principio}, {m|sale oculto lentamente} {d|el astro} (3)",
+   ex:"Iniciales. «Al principio» indica que tomes la primera letra de cada palabra: Sale Oculto Lentamente → SOL."},
+  {a:"OCASO", lvl:"Mediano", clue:"{d|Atardecer} {i|oculto en} «yo {m|lo caso}», dice el cura (5)",
+   ex:"Palabra oculta. Está escondida en «l-O CASO». La definición es «atardecer»."},
+  {a:"GATO", lvl:"Mediano", clue:"{d|Levanta el coche} y {d|caza ratones} (4)",
+   ex:"Doble definición (sin indicador ni relleno). El GATO es la herramienta para levantar el coche y también el felino que caza ratones."},
+  {a:"CASA", lvl:"Difícil", clue:"{m|Desposar}, {i|sin acabar}, en el {d|hogar} (4)",
+   ex:"Eliminación. «Desposar» es CASAR; «sin acabar» le quita la última letra: CASA, el hogar."},
+  {a:"PIEDRA", lvl:"Mediano", clue:"{d|Roca} que se {m|perdía} {i|rodando} (6)",
+   ex:"Anagrama. «Rodando» indica que las letras de PERDÍA se mueven: forman PIEDRA, una roca."},
+  {a:"COMIDA", lvl:"Difícil", clue:"{m|Mi} {i|dentro de} la {m|coda}: {d|almuerzo} (6)",
+   ex:"Contenedor. Mete MI dentro de CODA: CO-MI-DA = COMIDA, el almuerzo."},
+  {a:"LIMA", lvl:"Mediano", clue:"{d|Herramienta para las uñas} en {d|la capital de Perú} (4)",
+   ex:"Doble definición. La LIMA de uñas y Lima, la capital de Perú."},
+  {a:"RATA", lvl:"Difícil", clue:"{d|Roedor} que {i|se vuelve} a {m|amarrar} (4)",
+   ex:"Lectura al revés. «Amarrar» es ATAR; «se vuelve» indica que lo leas al revés: RATA, un roedor."},
+  {a:"ROMA", lvl:"Mediano", clue:"El {m|loro, mamá}, {i|esconde} {d|una capital} (4)",
+   ex:"Palabra oculta. Está escondida en «lo-RO, MA-má». La definición es «una capital»."},
+  {a:"CAPITAL", lvl:"Difícil", clue:"{d|Dinero} de {d|Madrid} (7)",
+   ex:"Doble definición. CAPITAL es dinero y Madrid es «la capital». Son traicioneras porque parecen demasiado cortas."},
+  {a:"OLA", lvl:"Mediano", clue:"{i|Se oye} {m|un saludo} {d|que rompe en la playa} (3)",
+   ex:"Homófono. El saludo es HOLA; «se oye» indica una palabra que suena igual: OLA, que rompe en la playa."},
+  {a:"PAYASO", lvl:"Difícil", clue:"{m|Ya} {i|entra en} el {m|paso} {d|quien hace reír en el circo} (6)",
+   ex:"Contenedor. YA entra dentro de PASO: PA-YA-SO = PAYASO."},
+  {a:"TOMATE", lvl:"Mediano", clue:"{m|Coge} {m|té}, {d|rojo de la huerta} (6)",
+   ex:"Charada (sin indicador). «Coge» = TOMA, más «té» = TE: TOMA + TE = TOMATE, rojo de la huerta."},
+  {a:"PERA", lvl:"Difícil", clue:"{m|Lo que compuso Verdi}, {i|decapitado}, es {d|fruta} (4)",
+   ex:"Eliminación. Verdi compuso ÓPERA; «decapitado» le quita la primera letra: PERA, una fruta."},
+  {a:"LUNA", lvl:"Mediano", clue:"{i|Al principio}, {m|lobos ululan noche adentro}: {d|el satélite} (4)",
+   ex:"Iniciales. «Al principio» indica que tomes la primera letra de cada palabra: Lobos Ululan Noche Adentro → LUNA."},
+  {a:"ZORRA", lvl:"Difícil", clue:"{d|La astuta} {i|da la vuelta} al {m|arroz} (5)",
+   ex:"Lectura al revés. «Da la vuelta» indica que leas ARROZ al revés: ZORRA, la astuta."},
+  {a:"BANCO", lvl:"Mediano", clue:"{d|Asiento} {d|con sucursales} (5)",
+   ex:"Doble definición. Un BANCO es un asiento y también una entidad con sucursales."},
+  {a:"SOLDADO", lvl:"Difícil", clue:"{d|Militar}: {m|astro} y {m|cubo del parchís} (7)",
+   ex:"Charada (sin indicador). El astro es el SOL y el cubo del parchís es el DADO: SOL + DADO = SOLDADO."},
+  {a:"CAMPANA", lvl:"Mediano", clue:"{m|Pan} {i|metido en} la {m|cama}, {d|la oyes en misa} (7)",
+   ex:"Contenedor. Mete PAN dentro de CAMA: CAM-PAN-A = CAMPANA, que suena en misa."},
+  {a:"CARACOL", lvl:"Difícil", clue:"{m|Rostro} con {m|repollo}: {d|lleva la casa a cuestas} (7)",
+   ex:"Charada (sin indicador). Rostro = CARA y repollo = COL: CARA + COL = CARACOL."}
+];
+
+/* ===== Banco de casos (uno por día) =====
+   sol.dia / sol.lugar: respuestas aceptadas (sin tildes ni artículos).
+   sol.hora: horas en formato h:mm de 12 h (se aceptan también 24 h) y versiones en palabras. */
+const CASOS = [
+  {t:"La isla",
+   ctx:"Una persona nos envió esta carta que recibió de un civil retenido en una isla controlada por la milicia. Los militares vigilan todas sus comunicaciones y sólo se puede visitar bajo su presencia y autorización. Como verás al final de la carta, el prisionero asegura haber recibido visitas, pero estas nunca ocurrieron. El destinatario sospecha que encriptó en el texto los datos tácticos para un rescate. Extraiga el Día, la Hora y el Lugar ocultos en la carta.",
+   carta:[
+    "Esta semana intenté leer esa novela que me prestaste, pero siempre termino saltando el relleno para ver con qué frase cierra cada escena.",
+    "Salí a la costa al amanecer; el calor no afloja por aquí. Fue una caminata extraña. El día, el sonido, mi color de piel ante el agua salada.",
+    "Cuando volví al cuarto acomodé las pocas cosas que saqué del bolso. Un par, un calcetín y el reloj.",
+    "A la tarde bajé hasta el embarcadero a ver al señor descargando los animales del ferry comercial. Las vacas hacían ruido, él iba y venía para amarrar los barcos.",
+    "Por cierto, ¡gracias a todos por haberme visitado!",
+    "Espero sus cartas."],
+   sol:{dia:["MARTES"], hora:{num:["2:30"], txt:["dos y media","dos treinta","catorce treinta"]}, lugar:["MUELLE"]},
+   show:{dia:"Martes", hora:"Dos y media (14:30)", lugar:"El muelle"},
+   ex:[
+    "<b>La clave:</b> «saltando el relleno para ver con qué frase cierra cada escena». Solo cuenta la última frase de cada párrafo.",
+    "<b>Día:</b> «el agua salada» es MAR; «mi color de piel» es la TEZ, y «el sonido» pide leerla por cómo suena: TES. MAR + TES = <b>MARTES</b>.",
+    "<b>Hora:</b> «un par» es DOS y «un calcetín» es una MEDIA; «y el reloj» avisa de que es una hora: <b>dos y media</b>.",
+    "<b>Lugar:</b> las vacas hacen MU; «él iba y venía» es EL de ida y LE de vuelta: ELLE. MU + ELLE = <b>MUELLE</b>, donde se amarran los barcos.",
+    "<b>La señal:</b> las visitas que agradece nunca ocurrieron."]},
+
+  {t:"La granja",
+   ctx:"Un antiguo periodista retenido en una zona agrícola bajo control rebelde escribe a su hermana. Un censor tacha de cada carta cualquier fecha o nombre de lugar, y las visitas de familiares están prohibidas desde hace meses. La hermana sospecha que la carta esconde el punto de encuentro para sacarlo de allí. Extraiga el Día, la Hora y el Lugar ocultos en la carta.",
+   carta:[
+    "Querida Inés: aquí las tardes son largas y he recuperado la vieja manía del abuelo, la de leer solo cómo arranca cada capítulo e imaginar el resto.",
+    "Si vienes, trae al rey del ajedrez bien metido dentro. Aquí jugamos por las noches con un tablero al que le faltan piezas, y los guardias se ríen cuando movemos un botón como si fuera un alfil.",
+    "En punto, conté a los jugadores de un equipo de fútbol sobre el césped. Los domingos los soldados organizan partidos en la explanada y a nosotros nos dejan mirar desde la valla, aunque nunca jugar.",
+    "Solté una gran carcajada: ja. Fue cuando el sargento intentó ordeñar una cabra y acabó sentado en el barro. Hacía meses que no me reía así.",
+    "Dale las gracias a mamá por el bizcocho que me trajo la semana pasada; todavía me queda un trozo.",
+    "Te quiere, Andrés."],
+   sol:{dia:["VIERNES"], hora:{num:["11:00"], txt:["once"]}, lugar:["GRANJA"]},
+   show:{dia:"Viernes", hora:"Las once en punto", lugar:"La granja"},
+   ex:[
+    "<b>La clave:</b> «leer solo cómo arranca cada capítulo». Solo cuenta la primera frase de cada párrafo.",
+    "<b>Día:</b> el rey del ajedrez es la R; metida dentro de VIENES da VIE-R-NES = <b>VIERNES</b>.",
+    "<b>Hora:</b> un equipo de fútbol tiene once jugadores en el campo, y «en punto» avisa de que es una hora: <b>las once</b>.",
+    "<b>Lugar:</b> GRAN + JA = <b>GRANJA</b>.",
+    "<b>La señal:</b> su madre nunca pudo llevarle el bizcocho, porque las visitas están prohibidas."]},
+
+  {t:"La torre",
+   ctx:"Una ingeniera retenida en un complejo industrial custodiado por una guardia privada escribe a su madre. En el complejo no hay internet ni teléfono, y cada carta se lee en voz alta ante el jefe de seguridad antes de enviarse. Nadie ha reparado en sus extraños paréntesis. Extraiga el Día, la Hora y el Lugar ocultos en la carta.",
+   carta:[
+    "Mamá: el médico del complejo dice que hablo poco y que lo importante, como siempre, lo dejo entre paréntesis. Puede que tenga razón.",
+    "Esta semana trajeron libros nuevos a la sala común (todo basado en hechos reales, pero revuelto como un mal guion). Me leí dos en una noche, aunque el final de ambos era el mismo.",
+    "Los guardias juegan a las cartas hasta muy tarde (antes de mirar el reloj cuentan los pecados capitales, por superstición) y luego caen dormidos sobre la mesa.",
+    "En el patio, un gato persigue palomas todo el día (como un toro que pierde la cola mientras canta la segunda nota de la escala). Lo miramos durante horas, porque aquí no hay otra cosa que mirar.",
+    "Gracias por las fotos que me enviaste por correo electrónico; las miro cada noche antes de dormir.",
+    "Un beso, Clara."],
+   sol:{dia:["SABADO"], hora:{num:["7:00"], txt:["siete"]}, lugar:["TORRE"]},
+   show:{dia:"Sábado", hora:"Las siete", lugar:"La torre"},
+   ex:[
+    "<b>La clave:</b> «lo importante lo dejo entre paréntesis». Solo cuenta lo que va entre paréntesis.",
+    "<b>Día:</b> «revuelto» indica un anagrama de BASADO: <b>SÁBADO</b>.",
+    "<b>Hora:</b> los pecados capitales son siete, y «mirar el reloj» avisa de que es una hora: <b>las siete</b>.",
+    "<b>Lugar:</b> un TORO que pierde la cola es TOR; la segunda nota de la escala es RE. TOR + RE = <b>TORRE</b>.",
+    "<b>La señal:</b> en el complejo no hay internet, así que nunca pudo recibir esas fotos."]},
+
+  {t:"El almacén",
+   ctx:"Un minero retenido en un campamento de montaña escribe a su hijo. Los guardias tachan cualquier frase que les parezca sospechosa, pero dejan pasar las preguntas porque las creen inofensivas. En el campamento no hay teléfonos. Extraiga el Día, la Hora y el Lugar ocultos en la carta.",
+   carta:[
+    "Pablo: aquí no nos dejan contar mucho, así que te escribo lo que de verdad me ronda la cabeza, y eso siempre son preguntas.",
+    "El cielo de la sierra es precioso, de un azul que no había visto nunca. ¿Qué se esconde cuando al azul unes la nieve? Nadie aquí sabe responderme.",
+    "Por las noches nos dan huevos duros para cenar, siempre contados. ¿A qué hora juntan las manecillas una docena? Yo ya he perdido la cuenta.",
+    "Sigo acordándome del abuelo. ¿Recuerdas que decía que el alma, después de la cena sin postre, ya no pesa nada?",
+    "Dile a la tía que me encantó su llamada del domingo; hacía mucho que no oía su voz.",
+    "Un abrazo fuerte, papá."],
+   sol:{dia:["LUNES"], hora:{num:["12:00"], txt:["doce","mediodia","medianoche"]}, lugar:["ALMACEN"]},
+   show:{dia:"Lunes", hora:"Las doce", lugar:"El almacén"},
+   ex:[
+    "<b>La clave:</b> «lo que de verdad me ronda la cabeza son preguntas». Solo cuentan las frases entre signos de interrogación.",
+    "<b>Día:</b> «se esconde» indica una palabra oculta: «azu<b>L UNES</b>» → <b>LUNES</b>.",
+    "<b>Hora:</b> una docena son doce, y «las manecillas» avisan de que es una hora: <b>las doce</b>.",
+    "<b>Lugar:</b> ALMA + CENA «sin postre» (sin la última letra) = ALMA + CEN = <b>ALMACÉN</b>.",
+    "<b>La señal:</b> en el campamento no hay teléfonos, así que la llamada nunca existió."]},
+
+  {t:"La mina",
+   ctx:"Un cooperante retenido junto a una explotación minera escribe a su hermano. Tiene prohibido mencionar dónde está o qué hace, pero sí puede contar lo que le dicen los demás. Todos los paquetes que llegan al campamento se abren y se registran. Extraiga el Día, la Hora y el Lugar ocultos en la carta.",
+   carta:[
+    "Hermano: casi no hablo con nadie, así que apunto lo que me dicen los demás, palabra por palabra y entre comillas. Es lo único que merece la pena de mis días.",
+    "El cocinero, que es de pocas palabras, me soltó ayer: «A ese juego le han robado el go, y tú lo ves». No entendí nada, pero me hizo gracia.",
+    "Mi compañero de litera lee novelas de aventuras y, cada vez que mira el reloj, repite lo mismo: «Llegaron los mosqueteros de Dumas, y yo me comí un cuarto del pastel».",
+    "Esta mañana el capataz me vio bostezar y se rió: «Yo tampoco dormí nada; ahí dentro está el lugar donde excavamos».",
+    "Muchas gracias por el paquete de libros. Me lo entregaron cerrado, tal y como lo enviaste.",
+    "Cuídate, Luis."],
+   sol:{dia:["JUEVES"], hora:{num:["3:15"], txt:["tres y cuarto","tres quince","quince quince"]}, lugar:["MINA"]},
+   show:{dia:"Jueves", hora:"Tres y cuarto (15:15)", lugar:"La mina"},
+   ex:[
+    "<b>La clave:</b> «apunto lo que me dicen los demás, entre comillas». Solo cuenta lo que va entre comillas.",
+    "<b>Día:</b> a JUEGO le roban el GO y queda JUE; «tú lo ves» es VES. JUE + VES = <b>JUEVES</b>.",
+    "<b>Hora:</b> los mosqueteros de Dumas son tres, y «un cuarto» completa la hora: <b>tres y cuarto</b>.",
+    "<b>Lugar:</b> «ahí dentro» indica una palabra oculta: «dor<b>MÍ NA</b>da» → <b>MINA</b>, el lugar donde se excava.",
+    "<b>La señal:</b> los paquetes siempre se abren, así que nunca pudo recibirlo cerrado."]},
+
+  {t:"El faro",
+   ctx:"Una profesora retenida en una pequeña isla rocosa escribe a un viejo amigo. El papel está racionado y a la isla solo llega un barco de suministros al mes, que nunca lleva pasajeros. Extraiga el Día, la Hora y el Lugar ocultos en la carta.",
+   carta:[
+    "Querido Tomás: te escribo poco porque el papel escasea. Ya sabes que lo mejor de mis cartas siempre llega al final, cuando parece que ya he terminado.",
+    "Aquí todo sigue igual. Comemos lentejas, trabajamos en la huerta y por la noche cuento las estrellas hasta dormirme. ¡Muchas gracias por venir a verme el mes pasado! Fue lo mejor del año.",
+    "Un abrazo, Elena.",
+    "P. D.: Al juego de fichas le quité la última y le sumé el go japonés. Sigo sin ganar ni una partida.",
+    "P. P. D.: Cuenta los dedos de una mano, menos cuarto. A esa hora me acuerdo de ti.",
+    "P. P. P. D.: El sofá roto del salón sigue igual; dentro esconde la luz que guía a los barcos."],
+   sol:{dia:["DOMINGO"], hora:{num:["4:45"], txt:["cinco menos cuarto","cuatro cuarenta y cinco","dieciseis cuarenta y cinco"]}, lugar:["FARO"]},
+   show:{dia:"Domingo", hora:"Cinco menos cuarto (16:45)", lugar:"El faro"},
+   ex:[
+    "<b>La clave:</b> «lo mejor llega al final, cuando parece que ya he terminado». Solo cuentan las posdatas.",
+    "<b>Día:</b> al DOMINÓ le quitas la última letra (DOMIN) y le sumas GO: <b>DOMINGO</b>.",
+    "<b>Hora:</b> una mano tiene cinco dedos; «menos cuarto» completa la hora: <b>cinco menos cuarto</b>.",
+    "<b>Lugar:</b> «dentro esconde» indica una palabra oculta: «so<b>FÁ RO</b>to» → <b>FARO</b>, la luz que guía a los barcos.",
+    "<b>La señal:</b> el barco de suministros no lleva pasajeros, así que nadie pudo ir a verla."]},
+
+  {t:"La plaza",
+   ctx:"Un músico retenido en un hospital de campaña custodiado por soldados escribe a su primo. Solo puede salir al jardín acompañado y las visitas de familiares están prohibidas. Extraiga el Día, la Hora y el Lugar ocultos en la carta.",
+   carta:[
+    "Primo: el tío Ramón decía que en un chiste lo único que importa es el remate. Te cuento tres historias de esta semana, a ver si te ríes.",
+    "La primera: en el comedor resbalé con la bandeja y la sopa acabó en el suelo. Todo el mundo se giró a mirarme, así que grité la palabrota, pero en su versión educada.",
+    "La segunda: un enfermero me regaló un cuaderno para que compusiera algo, y quedamos en que se lo enseñaría a cierta hora. Lo abrí, olí las hojas y supe que era nuevo, aunque acababa en e.",
+    "La tercera: llevo semanas esperando la respuesta del juez sobre mi traslado. Hoy por fin se cumplió el plazo, pero acabó en a.",
+    "¡Qué alegría me dio veros a todos en el jardín el domingo!",
+    "Tu primo, Julián."],
+   sol:{dia:["MIERCOLES"], hora:{num:["9:00"], txt:["nueve"]}, lugar:["PLAZA"]},
+   show:{dia:"Miércoles", hora:"Las nueve", lugar:"La plaza"},
+   ex:[
+    "<b>La clave:</b> «lo único que importa es el remate». Solo cuenta la última frase de cada historia.",
+    "<b>Día:</b> la versión educada de la palabrota es «¡<b>MIÉRCOLES</b>!».",
+    "<b>Hora:</b> NUEVO, pero acabado en E: <b>NUEVE</b>.",
+    "<b>Lugar:</b> PLAZO, pero acabado en A: <b>PLAZA</b>.",
+    "<b>La señal:</b> las visitas están prohibidas, así que nadie pudo ir a verlo al jardín."]}
+];
+
+const START = Date.UTC(2026,10,9); // 9 nov 2026 = día 0
+const SEND_TO = "j.lozvil@gmail.com";
+const MAX_LETTERS = n => Math.max(1, n-1);
+const mod = (a,n) => ((a%n)+n)%n;
+
+const store = {
+  get(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const mem = {};
+const keyOf = (k,i) => (k==="w"?"cripto-w-":"cripto-caso-")+i;
+function stateOf(k,i){
+  const key=keyOf(k,i);
+  if(!mem[key]) mem[key] = store.get(key, k==="w"
+    ? {d:false,i:false,m:false,rev:[],tries:0,solved:false,gave:false,guess:""}
+    : {tries:0,ok:{dia:false,hora:false,lugar:false},vals:{dia:"",hora:"",lugar:""},solved:false,gave:false});
+  return mem[key];
+}
+function save(k,i){ store.set(keyOf(k,i), mem[keyOf(k,i)]); }
+
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();
+const esc = s => s.replace(/[&<>"]/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+function localDayIndex(d=new Date()){
+  return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - START)/864e5);
+}
+function dateForDay(n){ const t=new Date(START+n*864e5); return new Date(t.getUTCFullYear(),t.getUTCMonth(),t.getUTCDate()); }
+/* Palabras propias (creadas por el administrador, guardadas en la base de datos) */
+let customs = {};               // "c-<id>" -> {clue,a,lvl,ex,date,author,createdAt,custom:true,docId}
+const ymd = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+function customFor(day){
+  const ds=ymd(dateForDay(day)); let best=null;
+  for(const [k,v] of Object.entries(customs)) if(v.date===ds && (!best || (v.createdAt||0)>(customs[best].createdAt||0))) best=k;
+  return best;
+}
+const wordFor = day => customFor(day) ?? mod(day, BANK.length);
+const wordObj = id => typeof id==="number" ? BANK[id] : customs[id];
+const pid = v => /^\d+$/.test(v) ? +v : v;
+const casoFor = day => mod(day, CASOS.length);
+
+let isAdmin = false, isOwner = false, db = null;
+let today = localDayIndex();
+let current = {k:"w", id:wordFor(today)};
+let viewingArchive = false;
+const isToday = (k,id) => k==="w" ? id===wordFor(today) : id===casoFor(today);
+
+/* ===== Comprobación de respuestas del caso ===== */
+function cleanWord(s){
+  return norm(s).replace(/[^A-ZÑ ]/g," ").split(/\s+/).filter(w=>w && !["EL","LA","LOS","LAS","UN","UNA","EN","DIA"].includes(w)).join("");
+}
+function canonHora(s){
+  let t = norm(s).toLowerCase().replace(/[.,h]/g,":").replace(/[^0-9:]/g,"").replace(/:+/g,":").replace(/:$/,"");
+  const m = t.match(/^(\d{1,2}):?(\d{2})?$/);
+  if(!m) return null;
+  const h = +m[1], mm = m[2]||"00";
+  if(h>24 || +mm>59) return null;
+  return ((h%12)||12)+":"+mm;
+}
+function cleanHoraTxt(s){
+  const drop=["a","las","la","en","punto","de","del","tarde","manana","noche","madrugada","horas","hora","h","pm","am"];
+  return norm(s).toLowerCase().replace(/[^a-z ñ]/g," ").split(/\s+/).filter(w=>w && !drop.includes(w)).join(" ");
+}
+function checkField(field, val, sol){
+  if(!val.trim()) return false;
+  if(field==="hora"){
+    const c = canonHora(val);
+    if(c && sol.hora.num.includes(c)) return true;
+    const t = cleanHoraTxt(val);
+    return sol.hora.txt.some(x=>cleanHoraTxt(x)===t);
+  }
+  const v = cleanWord(val);
+  return sol[field].some(x=>cleanWord(x)===v);
+}
+
+/* ===== Pestañas ===== */
+function renderTabs(){
+  const tabs = document.getElementById("tabs");
+  let items;
+  if(viewingArchive) items=[{...current, label: current.k==="w" ? (typeof current.id==="number" ? `Palabra nº ${current.id+1}` : "Palabra propia") : `Caso nº ${current.id+1}`}];
+  else items=[{k:"w",id:wordFor(today),label:"Palabra"},{k:"c",id:casoFor(today),label:"Caso"}];
+  tabs.innerHTML = items.map(it=>{
+    const st = stateOf(it.k,it.id);
+    const act = it.k===current.k && it.id===current.id;
+    return `<button class="tab ${act?'active':''}" data-k="${it.k}" data-id="${it.id}">${it.label}${st.solved?'<span class="tick">✓</span>':''}</button>`;
+  }).join("");
+  tabs.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{current={k:b.dataset.k,id:pid(b.dataset.id)};render();});
+}
+
+function render(){
+  if(current.k==="w" && !wordObj(current.id)){ viewingArchive=false; current={k:"w",id:wordFor(today)}; document.getElementById("btnBack").classList.remove("on"); }
+  renderTabs();
+  if(current.k==="w") renderWord(); else renderCaso();
+}
+
+/* ===== Juego 1: palabra ===== */
+function renderClue(c, st){
+  return esc(c.clue).replace(/\{([dim])\|([^}]+)\}/g, (_,t,txt)=>{
+    const on = st[t] || st.solved || st.gave;
+    return `<mark class="${on?'show-'+t:''}">${txt}</mark>`;
+  });
+}
+const has = (c,t) => c.clue.includes("{"+t+"|");
+
+function renderWord(){
+  const id=current.id, c = wordObj(id), st = stateOf("w",id), A = norm(c.a);
+  const done = st.solved || st.gave;
+  const card = document.getElementById("card");
+  const usedHints = ["d","i","m"].filter(k=>st[k]).length + st.rev.length;
+  card.innerHTML = `
+    <div class="meta"><span>Palabra · ${esc(c.lvl||"")}${c.author?` · de ${esc(c.author)}`:""}</span><span id="wmeta">${st.tries} intento${st.tries===1?'':'s'} · ${usedHints} pista${usedHints===1?'':'s'}</span></div>
+    <p class="clue">${renderClue(c,st)}</p>
+    <div class="boxes ${st.solved?'ok':''}" id="boxes" style="--n:${A.length}">${[...A].map((ch,i)=>{
+      const rev = st.rev.includes(i) || done;
+      const val = rev ? ch : (st.guess[i]||"");
+      return `<input maxlength="1" inputmode="text" autocomplete="off" autocapitalize="characters" data-i="${i}" value="${val.trim()}" ${rev?'readonly':''} class="${st.rev.includes(i)&&!st.solved?'rev':''}">`;
+    }).join("")}</div>
+    <div class="status" id="status"></div>
+    <div class="actions">
+      <button class="primary" id="btnCheck" ${done?'disabled':''}>Comprobar</button>
+      ${done?'':'<button class="ghost" id="btnGive">Rendirme</button>'}
+    </div>
+    ${done?'':`
+    <p class="hints-title">Pistas</p>
+    <div class="hints">
+      ${hintBtn("d","Definición","var(--def)",st,c)}
+      ${hintBtn("i","Indicador","var(--ind)",st,c)}
+      ${hintBtn("m","Relleno","var(--mat)",st,c)}
+      <button class="hint" id="hL" ${st.rev.length>=MAX_LETTERS(A.length)?'disabled':''}><span class="dot" style="background:var(--accent)"></span><span>Revelar letra<small>${st.rev.length}/${MAX_LETTERS(A.length)} usadas</small></span></button>
+    </div>
+    <div class="note" id="note"></div>`}
+    <div class="explain ${done?'on':''}">
+      <div class="k">${st.solved?'¡Resuelto!':'Solución'}</div>
+      <h3>${esc(c.a)}</h3>
+      <div>${c.custom ? esc(c.ex||"") : c.ex}</div>
+      ${st.solved?`<button class="ghost share" id="btnShare">Copiar resultado</button>`:''}
+    </div>`;
+  wireWord(id,c,st,A);
+}
+
+function hintBtn(k,label,color,st,c){
+  const exists = has(c,k);
+  const sub = !exists ? (st[k] ? "No tiene" : "Marcar en la pista") : (st[k] ? "Marcado" : "Marcar en la pista");
+  return `<button class="hint ${st[k]?'used':''}" data-h="${k}" ${st[k]?'disabled':''}><span class="dot" style="background:${color}"></span><span>${label}<small>${sub}</small></span></button>`;
+}
+
+function wireWord(id,c,st,A){
+  const inputs=[...document.querySelectorAll("#boxes input")];
+  const free = inputs.filter(x=>!x.readOnly);
+  const saveGuess=()=>{ st.guess = inputs.map(x=>x.value||" ").join(""); save("w",id); };
+  const check=()=>{
+    const g = inputs.map(x=>x.value||"").join("");
+    const status=document.getElementById("status");
+    if(g.length<A.length){ status.className="status bad"; status.textContent=`Faltan letras: la respuesta tiene ${A.length}.`; return; }
+    st.tries++;
+    if(norm(g)===A){ st.solved=true; save("w",id); render(); return; }
+    save("w",id);
+    const b=document.getElementById("boxes"); b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake");
+    status.className="status bad"; status.textContent="No es esa. ¡Sigue intentándolo!";
+    const used=["d","i","m"].filter(k=>st[k]).length+st.rev.length;
+    document.getElementById("wmeta").textContent=`${st.tries} intento${st.tries===1?'':'s'} · ${used} pista${used===1?'':'s'}`;
+  };
+  inputs.forEach((inp,idx)=>{
+    inp.addEventListener("input",()=>{
+      inp.value = norm(inp.value).replace(/[^A-ZÑ]/g,"").slice(-1);
+      saveGuess();
+      if(inp.value){ const nx=inputs.slice(idx+1).find(x=>!x.readOnly); if(nx) nx.focus(); }
+    });
+    inp.addEventListener("keydown",e=>{
+      if(e.key==="Backspace" && !inp.value){ const pv=inputs.slice(0,idx).reverse().find(x=>!x.readOnly); if(pv){pv.value="";pv.focus();saveGuess();e.preventDefault();} }
+      else if(e.key==="Enter"){ check(); }
+      else if(e.key==="ArrowLeft"){ const pv=inputs[idx-1]; if(pv) pv.focus(); }
+      else if(e.key==="ArrowRight"){ const nx=inputs[idx+1]; if(nx) nx.focus(); }
+    });
+    inp.addEventListener("focus",()=>inp.select());
+  });
+  const bc=document.getElementById("btnCheck"); if(bc) bc.onclick=check;
+  const bg=document.getElementById("btnGive"); if(bg) bg.onclick=()=>{ st.gave=true; save("w",id); render(); };
+  document.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.h;
+    st[k]=true; save("w",id); render();
+    if(!has(c,k)){
+      document.getElementById("note").textContent = k==="i" ? "Esta pista no tiene indicador: es una charada o una doble definición." :
+        k==="m" ? "Esta pista no tiene relleno: es una doble definición, las dos partes definen la palabra." : "";
+    }
+  });
+  const hl=document.getElementById("hL"); if(hl) hl.onclick=()=>{
+    const cand=[...A].map((_,i)=>i).filter(i=>!st.rev.includes(i) && norm(inputs[i].value)!==A[i]);
+    const pool = cand.length?cand:[...A].map((_,i)=>i).filter(i=>!st.rev.includes(i));
+    if(!pool.length) return;
+    st.rev.push(pool[Math.floor(Math.random()*pool.length)]);
+    saveGuess(); render();
+  };
+  const sh=document.getElementById("btnShare"); if(sh) sh.onclick=async()=>{
+    const hints=["d","i","m"].filter(k=>st[k]).length+st.rev.length;
+    const txt=`enCryptado · Palabra (${c.lvl})\n✅ Resuelta en ${st.tries} intento${st.tries===1?'':'s'} con ${hints} pista${hints===1?'':'s'}`;
+    try{ await navigator.clipboard.writeText(txt); sh.textContent="¡Copiado!"; }catch(e){ sh.textContent="No se pudo copiar"; }
+  };
+  if(!st.solved&&!st.gave){ const f=free.find(x=>!x.value)||free[0]; if(f && window.matchMedia("(pointer:fine)").matches) f.focus(); }
+}
+
+/* ===== Juego 2: caso ===== */
+const FIELDS=[["dia","Día","p. ej. lunes"],["hora","Hora","p. ej. 14:30"],["lugar","Lugar","p. ej. la estación"]];
+
+function renderCaso(){
+  const id=current.id, c=CASOS[id], st=stateOf("c",id);
+  const done = st.solved || st.gave;
+  const card=document.getElementById("card");
+  card.innerHTML = `
+    <div class="meta"><span>Caso nº ${id+1} · Alta complejidad</span><span id="cmeta">${st.tries} intento${st.tries===1?'':'s'}</span></div>
+    <h2 class="caso-title">${esc(c.t)}</h2>
+    <div class="alerta"><b>Alerta:</b> los casos crípticos son de alta complejidad y no presentan pistas. Pueden tomar un largo rato.</div>
+    <p class="hints-title">Contexto del caso</p>
+    <p class="ctx"><b>Agente:</b> ${esc(c.ctx)}</p>
+    <p class="hints-title">Carta recibida <span class="tag">ENCRIPTADO</span></p>
+    <div class="letter">${c.carta.map(p=>`<p>${esc(p)}</p>`).join("")}</div>
+    <p class="hints-title">Datos del rescate</p>
+    <div class="fields" id="fields">${FIELDS.map(([f,label,ph])=>{
+      const ok = st.ok[f] || done;
+      const val = done ? (st.ok[f] ? st.vals[f] : c.show[f]) : (st.vals[f]||"");
+      return `<div class="field ${st.ok[f]?'ok':''}" data-f="${f}"><label for="f-${f}">${label}</label><input id="f-${f}" autocomplete="off" placeholder="${ph}" value="${esc(val)}" ${ok?'readonly':''}><span class="mk">${st.ok[f]?'✓':''}</span></div>`;
+    }).join("")}</div>
+    <div class="status" id="status"></div>
+    <div class="actions">
+      <button class="primary" id="btnCheck" ${done?'disabled':''}>Comprobar</button>
+      ${done?'':'<button class="ghost" id="btnGive">Rendirme</button>'}
+    </div>
+    <div class="explain ${done?'on':''}">
+      <div class="k">${st.solved?'¡Caso resuelto!':'Solución'}</div>
+      <h3>${esc(c.show.dia)} · ${esc(c.show.hora)} · ${esc(c.show.lugar)}</h3>
+      <ul>${c.ex.map(x=>`<li>${x}</li>`).join("")}</ul>
+      ${st.solved?`<button class="ghost share" id="btnShare">Copiar resultado</button>`:''}
+    </div>`;
+  wireCaso(id,c,st);
+}
+
+function wireCaso(id,c,st){
+  const inputs = FIELDS.map(([f])=>document.getElementById("f-"+f));
+  inputs.forEach((inp,i)=>{
+    const f=FIELDS[i][0];
+    inp.addEventListener("input",()=>{ st.vals[f]=inp.value; save("c",id); const row=inp.parentElement; if(row.classList.contains("bad")){row.classList.remove("bad");row.querySelector(".mk").textContent="";} });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter") check(); });
+  });
+  const check=()=>{
+    const status=document.getElementById("status");
+    const pending = FIELDS.filter(([f])=>!st.ok[f]);
+    if(pending.some(([f])=>!(st.vals[f]||"").trim())){ status.className="status bad"; status.textContent="Rellena el día, la hora y el lugar antes de comprobar."; return; }
+    st.tries++;
+    pending.forEach(([f])=>{ if(checkField(f, st.vals[f], c.sol)) st.ok[f]=true; });
+    const nOk = FIELDS.filter(([f])=>st.ok[f]).length;
+    if(nOk===3){ st.solved=true; save("c",id); render(); return; }
+    save("c",id);
+    FIELDS.forEach(([f])=>{
+      const row=document.querySelector(`.field[data-f="${f}"]`);
+      row.classList.toggle("ok",st.ok[f]); row.classList.toggle("bad",!st.ok[f]);
+      row.querySelector(".mk").textContent = st.ok[f] ? "✓" : "✗";
+      if(st.ok[f]) row.querySelector("input").readOnly=true;
+    });
+    const fl=document.getElementById("fields"); fl.classList.remove("shake"); void fl.offsetWidth; fl.classList.add("shake");
+    status.className="status bad";
+    status.textContent = nOk===0 ? "Ninguno de los tres datos es correcto. Vuelve a leer la carta." : `Tienes ${nOk} de 3. Los correctos quedan fijados.`;
+    document.getElementById("cmeta").textContent=`${st.tries} intento${st.tries===1?'':'s'}`;
+  };
+  const bc=document.getElementById("btnCheck"); if(bc) bc.onclick=check;
+  const bg=document.getElementById("btnGive"); if(bg) bg.onclick=()=>{ st.gave=true; save("c",id); render(); };
+  const sh=document.getElementById("btnShare"); if(sh) sh.onclick=async()=>{
+    const txt=`enCryptado · Caso «${c.t}»\n🕵️ Resuelto en ${st.tries} intento${st.tries===1?'':'s'}`;
+    try{ await navigator.clipboard.writeText(txt); sh.textContent="¡Copiado!"; }catch(e){ sh.textContent="No se pudo copiar"; }
+  };
+}
+
+/* ===== Fecha, cuenta atrás y archivo ===== */
+function renderDate(){
+  const t=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  document.getElementById("date").textContent = t.charAt(0).toUpperCase()+t.slice(1);
+}
+
+function tick(){
+  const now=new Date(), next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  const s=Math.max(0,Math.floor((next-now)/1000));
+  const h=String(Math.floor(s/3600)).padStart(2,"0"), m=String(Math.floor(s%3600/60)).padStart(2,"0"), ss=String(s%60).padStart(2,"0");
+  document.getElementById("countdown").innerHTML=`Nuevos juegos en <b>${h}:${m}:${ss}</b>`;
+  if(localDayIndex()!==today){
+    today=localDayIndex();
+    if(!viewingArchive) current={k:current.k, id: current.k==="w"?wordFor(today):casoFor(today)};
+    renderDate(); render(); renderArchive();
+  }
+}
+
+function statusLabel(st){
+  return st.solved?'<span style="color:var(--ok)">✓ Resuelto</span>':st.gave?'<span style="color:var(--bad)">Rendido</span>':'<span style="color:var(--muted)">Pendiente</span>';
+}
+function renderArchive(){
+  const ar=document.getElementById("archive"), bar=document.getElementById("adminBar");
+  bar.classList.toggle("on",isAdmin);
+  ar.classList.toggle("on",isAdmin);
+  if(!isAdmin){ ar.innerHTML=""; return; }
+  const fmt = n => dateForDay(n).toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"});
+  const wBase = today - mod(today,BANK.length), cBase = today - mod(today,CASOS.length);
+  let html=`<h2>Palabras (${BANK.length})</h2>`;
+  BANK.forEach((w,id)=>{
+    const txt=w.clue.replace(/\{[dim]\|([^}]+)\}/g,"$1");
+    html+=`<button class="arch-item ${isToday("w",id)?'today':''}" data-k="w" data-id="${id}"><span class="s" style="color:var(--muted);width:78px">${fmt(wBase+id)}</span><span class="c">${esc(txt)}</span><span class="s">${statusLabel(stateOf("w",id))}</span></button>`;
+  });
+  html+=`<h2>Casos (${CASOS.length})</h2>`;
+  CASOS.forEach((c,id)=>{
+    html+=`<button class="arch-item ${isToday("c",id)?'today':''}" data-k="c" data-id="${id}"><span class="s" style="color:var(--muted);width:78px">${fmt(cBase+id)}</span><span class="c">${esc(c.t)} — ${esc(c.show.dia)}, ${esc(c.show.hora)}, ${esc(c.show.lugar)}</span><span class="s">${statusLabel(stateOf("c",id))}</span></button>`;
+  });
+  ar.innerHTML=html;
+  ar.querySelectorAll(".arch-item").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k, id=pid(b.dataset.id);
+    viewingArchive = !isToday(k,id);
+    current={k,id};
+    document.getElementById("btnBack").classList.toggle("on",viewingArchive);
+    render(); window.scrollTo({top:0,behavior:"smooth"});
+  });
+}
+
+document.getElementById("btnBack").onclick=()=>{ viewingArchive=false; current={k:current.k,id:current.k==="w"?wordFor(today):casoFor(today)}; document.getElementById("btnBack").classList.remove("on"); render(); };
+
+/* Modales */
+const open=id=>document.getElementById(id).classList.add("on");
+document.querySelectorAll(".modal").forEach(m=>{
+  m.addEventListener("click",e=>{ if(e.target===m||e.target.hasAttribute("data-close")) m.classList.remove("on"); });
+});
+document.getElementById("btnHelp").onclick=()=>open("helpModal");
+/* ===== Administrador: el propietario de la página (detectado con su cuenta) ===== */
+document.getElementById("btnAdmin").onclick=()=>{
+  if(!isOwner){ if(window.encLogin) window.encLogin(); else toast("No hay conexión con el servidor."); return; }
+  if(!isAdmin){ isAdmin=true; renderAdmin(); }
+  document.getElementById("adminEditor").scrollIntoView({behavior:"smooth"});
+};
+document.getElementById("btnLogout").onclick=()=>{
+  isAdmin=false; if(window.encLogout) window.encLogout();
+  viewingArchive=false; current={k:current.k,id:current.k==="w"?wordFor(today):casoFor(today)}; document.getElementById("btnBack").classList.remove("on");
+  render(); renderAdmin();
+};
+
+/* ===== Formulario de cripto (compartido por «Envía tu cripto» y el editor) ===== */
+const frags = s => (s||"").split("/").map(x=>x.trim()).filter(Boolean);
+const lettersOf = s => norm(s||"").replace(/[^A-ZÑ]/g,"");
+
+function formFields(p, admin){
+  return `<div class="form">
+    <label for="${p}-clue">Frase de la pista (sin el número de letras)</label>
+    <textarea id="${p}-clue" placeholder="Patria en revuelta por un ladrón del mar"></textarea>
+    <label for="${p}-a">Respuesta</label>
+    <input id="${p}-a" placeholder="PIRATA" autocomplete="off">
+    <label for="${p}-d">Definición</label>
+    <input id="${p}-d" placeholder="un ladrón del mar" autocomplete="off">
+    <div class="hint-txt">Cópiala tal cual aparece en la frase. Si hay dos definiciones, sepáralas con «/».</div>
+    <label for="${p}-i">Indicador (opcional)</label>
+    <input id="${p}-i" placeholder="en revuelta" autocomplete="off">
+    <label for="${p}-m">Relleno (opcional)</label>
+    <input id="${p}-m" placeholder="Patria" autocomplete="off">
+    <div class="hint-txt">Si el relleno son varios trozos, sepáralos con «/».</div>
+    <label for="${p}-ex">Explicación</label>
+    <textarea id="${p}-ex" placeholder="Anagrama. «En revuelta» indica que hay que revolver las letras de PATRIA…"></textarea>
+    <label for="${p}-lvl">Dificultad</label>
+    <select id="${p}-lvl"><option>Fácil</option><option selected>Mediano</option><option>Difícil</option></select>
+    ${admin ? `
+    <label for="${p}-author">Autor (opcional)</label>
+    <input id="${p}-author" placeholder="Nombre de quien lo envió" autocomplete="off">
+    <label for="${p}-date">Día en que sale</label>
+    <input type="date" id="${p}-date">` : `
+    <label for="${p}-name">Tu nombre o apodo</label>
+    <input id="${p}-name" placeholder="Así aparecerá si lo publicamos" autocomplete="nickname">
+    <label for="${p}-mail">Tu correo (opcional, para responderte)</label>
+    <input id="${p}-mail" type="email" autocomplete="email">`}
+  </div>
+  <div class="preview" id="${p}-prev"></div>`;
+}
+const val = id => { const el=document.getElementById(id); return el ? el.value : ""; };
+function readForm(p){
+  return {clue:val(p+"-clue"), a:val(p+"-a"), d:val(p+"-d"), i:val(p+"-i"), m:val(p+"-m"), ex:val(p+"-ex"), lvl:val(p+"-lvl"),
+          author:val(p+"-author"), date:val(p+"-date"), name:val(p+"-name"), mail:val(p+"-mail")};
+}
+function fillForm(p, f){
+  ["clue","a","d","i","m","ex","lvl","author","date","name","mail"].forEach(k=>{ const el=document.getElementById(p+"-"+k); if(el && f[k]!=null) el.value=f[k]; });
+}
+/* Construye la pista marcada a partir de los fragmentos y comprueba que todo cuadra */
+function buildClue(f){
+  const errors=[];
+  const clue=(f.clue||"").replace(/[{}|]/g,"").replace(/\s+/g," ").trim().replace(/\s*\(\d+\)\s*$/,"");
+  const L=lettersOf(f.a).length;
+  if(!clue) errors.push("Escribe la frase de la pista.");
+  if(!L) errors.push("Escribe la respuesta.");
+  const defs=frags(f.d), inds=frags(f.i), mats=frags(f.m);
+  if(!defs.length) errors.push("Indica cuál es la definición.");
+  const lc=clue.toLowerCase(), ranges=[];
+  const place=(frag,t)=>{
+    const fl=frag.toLowerCase(); let from=0;
+    for(;;){
+      const i=lc.indexOf(fl,from);
+      if(i<0){ errors.push(`«${frag}» no aparece en la frase (o se solapa con otro trozo).`); return; }
+      const j=i+fl.length;
+      if(!ranges.some(r=>i<r[1]&&j>r[0])){ ranges.push([i,j,t]); return; }
+      from=i+1;
+    }
+  };
+  if(clue){ defs.forEach(x=>place(x,"d")); inds.forEach(x=>place(x,"i")); mats.forEach(x=>place(x,"m")); }
+  ranges.sort((a,b)=>a[0]-b[0]);
+  let out="",p=0; for(const [i,j,t] of ranges){ out+=clue.slice(p,i)+`{${t}|${clue.slice(i,j)}}`; p=j; } out+=clue.slice(p);
+  return {markup: clue ? `${out} (${L})` : "", plain: clue ? `${clue} (${L})` : "", errors};
+}
+/* Separa una pista marcada en sus partes (para editar) */
+function splitMarkup(m){
+  const pick=t=>[...m.matchAll(new RegExp("\\{"+t+"\\|([^}]+)\\}","g"))].map(x=>x[1]).join(" / ");
+  return {clue:m.replace(/\{[dim]\|([^}]+)\}/g,"$1").replace(/\s*\(\d+\)\s*$/,""), d:pick("d"), i:pick("i"), m:pick("m")};
+}
+function showPreview(p){
+  const f=readForm(p), r=buildClue(f), box=document.getElementById(p+"-prev");
+  const all={d:true,i:true,m:true};
+  box.innerHTML = `<div class="k">Vista previa</div>` +
+    (r.markup ? `<p class="clue">${renderClue({clue:r.markup},all)}</p>` : `<p class="hint-txt">Aquí verás tu pista con cada parte en su color.</p>`) +
+    (r.errors.length ? `<ul class="errs">${r.errors.map(e=>`<li>${esc(e)}</li>`).join("")}</ul>` : `<div class="okline">✓ La pista está bien construida.</div>`);
+  return {f,r};
+}
+
+/* ===== «Envía tu cripto» (cualquier visitante) ===== */
+let sendText="";
+function updateSend(){
+  const {f,r}=showPreview("s"), a=document.getElementById("sMail");
+  const okForm = !r.errors.length && f.ex.trim() && f.name.trim();
+  const code = JSON.stringify({clue:r.plain.replace(/\s*\(\d+\)$/,""), a:f.a.trim(), d:f.d.trim(), i:f.i.trim(), m:f.m.trim(), ex:f.ex.trim(), lvl:f.lvl, name:f.name.trim(), mail:f.mail.trim()});
+  const subject=`Nuevo cripto para enCryptado: ${r.plain}`;
+  const body=[
+    "Nuevo cripto propuesto para enCryptado","",
+    `Pista: ${r.plain}`, `Respuesta: ${f.a.trim().toUpperCase()}`,
+    `Definición: ${f.d.trim()}`, `Indicador: ${f.i.trim()||"(no tiene)"}`, `Relleno: ${f.m.trim()||"(no tiene)"}`,
+    `Explicación: ${f.ex.trim()}`, `Dificultad: ${f.lvl}`,
+    `Autor: ${f.name.trim()}${f.mail.trim()?` (${f.mail.trim()})`:""}`,"",
+    "Código para importarlo desde el panel de administrador:", "CRIPTO:"+code
+  ].join("\n");
+  sendText = `Para: ${SEND_TO}\nAsunto: ${subject}\n\n${body}`;
+  a.href = `mailto:${SEND_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  a.classList.toggle("off", !okForm);
+  let extra=document.getElementById("sMissing");
+  if(!extra){ extra=document.createElement("div"); extra.id="sMissing"; extra.className="hint-txt"; document.getElementById("s-prev").after(extra); }
+  extra.textContent = r.errors.length ? "" : (!f.ex.trim() ? "Falta la explicación." : !f.name.trim() ? "Falta tu nombre o apodo." : "");
+}
+document.getElementById("sendForm").innerHTML = formFields("s", false);
+document.getElementById("sendForm").addEventListener("input", updateSend);
+document.getElementById("btnSend").onclick=()=>{ open("sendModal"); updateSend(); };
+document.getElementById("sCopy").onclick=async e=>{
+  const b=e.currentTarget;
+  try{ await navigator.clipboard.writeText(sendText); b.textContent="¡Copiado!"; }catch(err){ b.textContent="No se pudo copiar"; }
+  setTimeout(()=>b.textContent="Copiar texto",2000);
+};
+
+/* ===== Panel del administrador: crear, importar, editar y borrar palabras ===== */
+let editingId=null, editorBuilt=false;
+function renderAdmin(){
+  const ed=document.getElementById("adminEditor");
+  if(!isAdmin){ ed.innerHTML=""; editorBuilt=false; renderArchive(); renderCustomList(); renderPending(); return; }
+  if(!editorBuilt){
+    editorBuilt=true;
+    ed.innerHTML = `<div class="admin-sec">
+      <h2 id="edTitle">Crear palabra</h2>
+      <div id="genBox" style="display:none;margin:8px 0 4px"><button class="mini" id="aGen">✨ Generar con IA</button> <span class="hint-txt" id="genMsg"></span></div>
+      <p class="hint-txt">Elige el día en que sale: ese día sustituye a la palabra de serie.</p>
+      <details id="impBox"><summary>Importar un cripto recibido por correo</summary>
+        <div class="form"><textarea id="impTxt" placeholder="Pega aquí el correo entero (o la línea que empieza por CRIPTO:)"></textarea></div>
+        <div class="actions" style="margin:8px 0 0"><button class="mini" id="impBtn">Importar</button></div>
+        <div class="status" id="impMsg"></div>
+      </details>
+      ${formFields("a", true)}
+      <div class="actions" style="margin-bottom:6px"><button class="primary" id="aSave">Guardar palabra</button><button class="ghost" id="aCancel" style="display:none">Cancelar edición</button></div>
+      <div class="status" id="aMsg"></div>
+    </div>`;
+    document.getElementById("a-date").value = ymd(new Date());
+    ed.addEventListener("input", e=>{ if(e.target.id!=="impTxt") showPreview("a"); });
+    showPreview("a");
+    document.getElementById("impBtn").onclick=()=>{
+      const msg=document.getElementById("impMsg"), t=document.getElementById("impTxt").value;
+      try{
+        const at=t.indexOf("CRIPTO:"); if(at<0) throw 0;
+        const rest=t.slice(at+7).replace(/\r?\n/g,""), j=JSON.parse(rest.slice(rest.indexOf("{"), rest.lastIndexOf("}")+1));
+        fillForm("a",{clue:j.clue||"",a:j.a||"",d:j.d||"",i:j.i||"",m:j.m||"",ex:j.ex||"",lvl:j.lvl||"Mediano",author:j.name||""});
+        showPreview("a"); msg.className="status good"; msg.textContent="Importado. Revisa la vista previa, elige el día y guarda.";
+      }catch(e){ msg.className="status bad"; msg.textContent="No encuentro el código. Pega el correo completo, incluida la línea «CRIPTO:…»."; }
+    };
+    document.getElementById("aCancel").onclick=()=>resetEditor();
+    document.getElementById("aSave").onclick=saveWord;
+    document.getElementById("aGen").onclick=generateWithAI;
+  }
+  document.getElementById("genBox").style.display = sampleFn ? "" : "none";
+  renderArchive(); renderCustomList(); renderPending();
+}
+function resetEditor(){
+  editingId=null; editingPending=null;
+  fillForm("a",{clue:"",a:"",d:"",i:"",m:"",ex:"",lvl:"Mediano",author:"",date:ymd(new Date())});
+  document.getElementById("edTitle").textContent="Crear palabra";
+  document.getElementById("aCancel").style.display="none";
+  showPreview("a");
+}
+async function saveWord(){
+  const msg=document.getElementById("aMsg"), {f,r}=showPreview("a");
+  const bad=t=>{ msg.className="status bad"; msg.textContent=t; };
+  if(!db) return bad("No hay conexión con la base de datos. Recarga la página e inténtalo de nuevo.");
+  if(r.errors.length) return bad("Corrige lo que marca la vista previa.");
+  if(!f.ex.trim()) return bad("Escribe la explicación.");
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(f.date)) return bad("Elige el día en que sale.");
+  const data={clue:r.markup, a:f.a.trim().toUpperCase(), lvl:f.lvl, ex:f.ex.trim(), date:f.date, author:f.author.trim(), createdAt:Date.now()};
+  const btn=document.getElementById("aSave"); btn.disabled=true;
+  try{
+    if(editingId) await db.collection("cryptics").doc(editingId).set(data);
+    else await db.collection("cryptics").add(data);
+    if(editingPending){ try{ await db.collection("pending").doc(editingPending).delete(); }catch(e){} }
+    const clash=Object.values(customs).filter(c=>c.date===f.date && c.docId!==editingId).length;
+    resetEditor();
+    msg.className="status good";
+    msg.textContent=`Guardada para el ${f.date.split("-").reverse().join("/")}.`+(clash?" Ese día ya tenía otra palabra propia: sale la última guardada.":"");
+  }catch(e){
+    bad(e && e.code==="quota_exceeded" ? "La base de datos está llena: borra alguna palabra antigua." : "No se pudo guardar. Inténtalo de nuevo.");
+  }finally{ btn.disabled=false; }
+}
+function renderCustomList(){
+  const box=document.getElementById("customList");
+  box.classList.toggle("on", isAdmin);
+  if(!isAdmin){ box.innerHTML=""; return; }
+  const list=Object.entries(customs).sort((a,b)=>(b[1].date||"").localeCompare(a[1].date||""));
+  const todayDs=ymd(new Date());
+  let html=`<h2>Palabras propias (${list.length})</h2>`;
+  if(!db) html+=`<p class="hint-txt">No hay conexión con la base de datos. Recarga la página.</p>`;
+  else if(!list.length) html+=`<p class="hint-txt">Aún no has creado ninguna. Las que guardes aparecerán aquí.</p>`;
+  list.forEach(([k,c])=>{
+    const dt=c.date ? new Date(c.date+"T12:00:00").toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"}) : "—";
+    const txt=c.clue.replace(/\{[dim]\|([^}]+)\}/g,"$1");
+    html+=`<div class="cust ${c.date===todayDs && wordFor(today)===k?'today':''}"><span class="d">${esc(dt)}</span><span class="c">${esc(txt)}</span>
+      <button class="mini" data-play="${esc(k)}">Jugar</button><button class="mini" data-edit="${esc(k)}">Editar</button><button class="mini" data-del="${esc(k)}">Borrar</button></div>`;
+  });
+  box.innerHTML=html;
+  box.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.play; viewingArchive = !isToday("w",id); current={k:"w",id};
+    document.getElementById("btnBack").classList.toggle("on",viewingArchive); render(); window.scrollTo({top:0,behavior:"smooth"});
+  });
+  box.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>{
+    const c=customs[b.dataset.edit]; if(!c) return;
+    editingId=c.docId;
+    fillForm("a",{...splitMarkup(c.clue), a:c.a, ex:c.ex||"", lvl:c.lvl||"Mediano", author:c.author||"", date:c.date||""});
+    document.getElementById("edTitle").textContent="Editar palabra";
+    document.getElementById("aCancel").style.display="";
+    document.getElementById("aMsg").textContent="";
+    showPreview("a"); document.getElementById("adminEditor").scrollIntoView({behavior:"smooth"});
+  });
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+    if(b.dataset.sure!=="1"){ b.dataset.sure="1"; b.textContent="¿Seguro?"; setTimeout(()=>{ b.dataset.sure=""; b.textContent="Borrar"; },3000); return; }
+    const c=customs[b.dataset.del]; if(!c || !db) return;
+    b.disabled=true;
+    try{ await db.collection("cryptics").doc(c.docId).delete(); if(editingId===c.docId) resetEditor(); }
+    catch(e){ b.disabled=false; b.textContent="Error"; }
+  });
+}
+
+
+/* ===== IA: propuestas semanales (pendientes) y botón «Generar con IA» ===== */
+let pendings={}, sampleFn=null, editingPending=null;
+const LT = s => norm(s||"").replace(/[^A-Z]/g,"");
+const sortedL = s => [...s].sort().join("");
+/* Comprueba con código que el mecanismo da la respuesta (cuando el tipo de truco lo permite) */
+function verifyCryptic(o){
+  const A=LT(o.a), x=LT(o.letras), mech=norm(o.mecanismo||"").toLowerCase(), frag=LT(o.m);
+  if(!A) return "manual";
+  if(mech.includes("anagrama")) return x && sortedL(x)===sortedL(A) ? "ok":"bad";
+  if(mech.includes("oculta")) return frag.includes(A) ? "ok":"bad";
+  if(mech.includes("reves")||mech.includes("inversa")) return x && [...x].reverse().join("")===A ? "ok":"bad";
+  if(mech.includes("inicial")){ const ini=(o.m||"").split(/[\s\/,;:.]+/).map(w=>LT(w)[0]||"").join(""); return ini===A ? "ok":"bad"; }
+  if(mech.includes("altern")){ const p=[0,1].map(r=>[...frag].filter((_,i)=>i%2===r).join("")); return p.includes(A) ? "ok":"bad"; }
+  if(mech.includes("charada")) return x===A ? "ok":"bad";
+  if(mech.includes("contenedor")) return x && sortedL(x)===sortedL(A) ? "ok":"bad";
+  return "manual";
+}
+const CHECK_TXT = {
+  ok:'<span style="color:var(--ok)">✓ Comprobado: el truco da la respuesta.</span>',
+  bad:'<span style="color:var(--bad)">✗ El truco no cuadra: corrígela o descártala.</span>',
+  manual:'<span style="color:var(--muted)">Revísala a mano: este tipo de truco no se puede comprobar solo.</span>'
+};
+function freeDate(pref, used){
+  const tomorrow=new Date(); tomorrow.setHours(12,0,0,0); tomorrow.setDate(tomorrow.getDate()+1);
+  if(pref && /^\d{4}-\d{2}-\d{2}$/.test(pref) && pref>=ymd(tomorrow) && !used.has(pref)) return pref;
+  const d=new Date(tomorrow);
+  for(let k=0;k<400;k++){ const s=ymd(d); if(!used.has(s)) return s; d.setDate(d.getDate()+1); }
+  return ymd(tomorrow);
+}
+const shortDate = s => new Date(s+"T12:00:00").toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"});
+const allAnswers = () => [...BANK.map(b=>b.a), ...Object.values(customs).map(c=>c.a), ...Object.values(pendings).map(p=>p.a)].map(LT);
+
+function renderPending(){
+  const box=document.getElementById("pendingList");
+  const on=isAdmin && !!db;
+  box.classList.toggle("on",on);
+  if(!on){ box.innerHTML=""; return; }
+  const list=Object.entries(pendings).sort((a,b)=>(a[1].suggestedDate||"").localeCompare(b[1].suggestedDate||"") || (a[1].createdAt||0)-(b[1].createdAt||0));
+  const used=new Set(Object.values(customs).map(c=>c.date));
+  let html=`<h2>Propuestas de la IA (${list.length})</h2>`;
+  if(!list.length) html+=`<p class="hint-txt">No hay propuestas pendientes. Cada lunes llegan las de la semana.</p>`;
+  list.forEach(([id,p])=>{
+    const date=freeDate(p.suggestedDate, used); used.add(date);
+    const parts=splitMarkup(p.clue);
+    const chk=verifyCryptic({a:p.a, letras:p.letras, mecanismo:p.mecanismo, m:parts.m});
+    html+=`<div class="admin-sec" style="margin-top:10px">
+      <div class="meta" style="margin-bottom:8px"><span>${esc(p.mecanismo||"cripto")} · ${esc(p.lvl||"Mediano")}</span><span>Saldría el ${esc(shortDate(date))}</span></div>
+      <p class="clue" style="font-size:21px;margin:0 0 8px">${renderClue({clue:p.clue},{d:true,i:true,m:true})}</p>
+      <div style="font-size:15px;margin-bottom:6px"><b>${esc(p.a)}</b> — ${esc(p.ex||"")}</div>
+      <div class="hint-txt" style="margin-bottom:10px">${CHECK_TXT[chk]}</div>
+      <div class="actions" style="margin:0"><button class="mini" data-pok="${esc(id)}" data-date="${date}">Aprobar</button><button class="mini" data-pedit="${esc(id)}" data-date="${date}">Editar</button><button class="mini" data-pdel="${esc(id)}">Descartar</button></div>
+    </div>`;
+  });
+  box.innerHTML=html;
+  box.querySelectorAll("[data-pok]").forEach(b=>b.onclick=async()=>{
+    const p=pendings[b.dataset.pok]; if(!p||!db) return;
+    b.disabled=true; b.textContent="Guardando…";
+    try{
+      await db.collection("cryptics").add({clue:p.clue, a:String(p.a).toUpperCase(), lvl:p.lvl||"Mediano", ex:p.ex||"", date:b.dataset.date, author:"IA", createdAt:Date.now()});
+      await db.collection("pending").doc(b.dataset.pok).delete();
+    }catch(e){ b.disabled=false; b.textContent="Error, reintenta"; }
+  });
+  box.querySelectorAll("[data-pedit]").forEach(b=>b.onclick=()=>{
+    const p=pendings[b.dataset.pedit]; if(!p) return;
+    editingId=null; editingPending=b.dataset.pedit;
+    fillForm("a",{...splitMarkup(p.clue), a:p.a, ex:p.ex||"", lvl:p.lvl||"Mediano", author:"IA", date:b.dataset.date});
+    document.getElementById("edTitle").textContent="Revisar propuesta de la IA";
+    document.getElementById("aCancel").style.display="";
+    document.getElementById("aMsg").textContent="";
+    showPreview("a"); document.getElementById("adminEditor").scrollIntoView({behavior:"smooth"});
+  });
+  box.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=async()=>{
+    if(b.dataset.sure!=="1"){ b.dataset.sure="1"; b.textContent="¿Seguro?"; setTimeout(()=>{ b.dataset.sure=""; b.textContent="Descartar"; },3000); return; }
+    b.disabled=true;
+    try{ await db.collection("pending").doc(b.dataset.pdel).delete(); if(editingPending===b.dataset.pdel) resetEditor(); }
+    catch(e){ b.disabled=false; b.textContent="Error"; }
+  });
+}
+
+const MECHS=["anagrama","palabra oculta","lectura al revés","contenedor","letras alternas","iniciales","charada","homófono","eliminación de letras","doble definición"];
+function genPrompt(mech,lvl,avoid){
+  return `Eres un autor experto de crucigramas crípticos en español de España. Inventa UNA pista críptica nueva y original.
+
+Reglas:
+- La pista es una frase natural con una lectura superficial engañosa. Esconde a la vez una DEFINICIÓN (sinónimo exacto de la respuesta, al principio o al final de la frase) y un JUEGO DE PALABRAS que construye la misma respuesta.
+- El juego de palabras usa un INDICADOR (palabra o expresión que avisa del truco: «revuelto», «al revés», «oculto en», «al principio», «se oye»…) y un RELLENO (el material). La doble definición y la charada pueden no tener indicador.
+- Mecanismo obligatorio: ${mech}. Dificultad: ${lvl}.
+- Respuesta: una sola palabra común del español, de 3 a 9 letras. No uses ninguna de estas: ${avoid.join(", ")}.
+- Definición, indicador y relleno deben ser fragmentos copiados LITERALMENTE de la frase y no pueden solaparse. Si el relleno son varios trozos, sepáralos con " / ".
+- "letras": la cadena exacta de letras (mayúsculas, sin tildes) que manipula el mecanismo. Ejemplos: anagrama de «cortas» → CORTAS; lectura al revés de «amarrar» (= ATAR) → ATAR; charada TOMA + TE → TOMATE; contenedor PAN dentro de CAMA → CAMAPAN.
+- Antes de responder, comprueba letra a letra que el mecanismo da exactamente la respuesta.
+
+Responde SOLO con este JSON:
+{"clue":"frase sin el número de letras","a":"RESPUESTA","d":"definición","i":"indicador o cadena vacía","m":"relleno","mecanismo":"${mech}","letras":"LETRAS","ex":"Explicación breve, p. ej.: Anagrama. «Mal» indica que las letras de CORTAS están desordenadas: dan CASTOR, un roedor."}`;
+}
+async function generateWithAI(){
+  const btn=document.getElementById("aGen"), msg=document.getElementById("genMsg");
+  if(!sampleFn){ msg.textContent="La IA no está disponible en esta vista."; return; }
+  btn.disabled=true; msg.innerHTML="Pensando un cripto nuevo… (puede tardar un poco)";
+  const lvl=val("a-lvl")||"Mediano", avoid=[...new Set(allAnswers())];
+  let best=null;
+  try{
+    for(let attempt=0; attempt<2; attempt++){
+      const mech=MECHS[Math.floor(Math.random()*MECHS.length)];
+      const o=await sampleFn.json(genPrompt(mech,lvl,avoid),{modelTier:"complex"});
+      if(!o || typeof o.clue!=="string" || typeof o.a!=="string") continue;
+      const f={clue:o.clue,a:o.a,d:o.d||"",i:o.i||"",m:o.m||"",ex:o.ex||""};
+      const built=buildClue(f), chk=verifyCryptic(o);
+      best={o,f,chk,ok:!built.errors.length && chk!=="bad" && !avoid.includes(LT(o.a))};
+      if(best.ok) break;
+    }
+    if(!best){ msg.textContent="La IA no devolvió una propuesta válida. Prueba otra vez."; return; }
+    editingId=null; editingPending=null;
+    const used=new Set(Object.values(customs).map(c=>c.date));
+    fillForm("a",{...best.f, lvl, author:"IA", date:freeDate(null,used)});
+    document.getElementById("edTitle").textContent="Revisar propuesta de la IA";
+    document.getElementById("aCancel").style.display="";
+    showPreview("a");
+    msg.innerHTML=`Propuesta lista (${esc(best.o.mecanismo||"")}). ${CHECK_TXT[best.chk]}`+(avoid.includes(LT(best.o.a))?' <span style="color:var(--bad)">Ojo: esa respuesta ya está usada.</span>':"");
+  }catch(e){
+    msg.textContent = e && e.code==="rate_limited" ? "Has hecho muchas peticiones seguidas: espera un poco." : "No se pudo generar. Inténtalo de nuevo.";
+  }finally{ btn.disabled=false; }
+}
+
+/* ===== Conexión con la cuenta y la base de datos ===== */
+let customSig="";
+function onCustomsChange(){
+  const sig=JSON.stringify(Object.entries(customs).map(([k,v])=>[k,v.date,v.createdAt]).sort());
+  if(sig===customSig) return; customSig=sig;
+  if(!viewingArchive && current.k==="w") current={k:"w",id:wordFor(today)};
+  render(); renderArchive(); renderCustomList(); renderPending();
+}
+/* Firebase (script de módulo al final) llama a estas funciones */
+function toast(t){
+  let el=document.getElementById("toast");
+  if(!el){ el=document.createElement("div"); el.id="toast"; el.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:12px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90vw;text-align:center"; document.body.appendChild(el); }
+  el.textContent=t; el.style.display="block"; clearTimeout(el._t); el._t=setTimeout(()=>el.style.display="none",4000);
+}
+let unsubPending=null;
+function startCrypticsListener(){
+  try{
+    db.collection("cryptics").onSnapshot(snap=>{
+      const next={};
+      snap.docs.forEach(d=>{ const v=d.data(); if(v && typeof v.clue==="string" && typeof v.a==="string") next["c-"+d.id]={...v, custom:true, docId:d.id}; });
+      customs=next; onCustomsChange();
+    }, ()=>{});
+  }catch(e){}
+}
+function setOwner(on){
+  isOwner=on;
+  if(unsubPending){ unsubPending(); unsubPending=null; pendings={}; }
+  if(on && db){
+    try{
+      unsubPending = db.collection("pending").onSnapshot(snap=>{
+        const next={};
+        snap.docs.forEach(d=>{ const v=d.data(); if(v && typeof v.clue==="string" && typeof v.a==="string") next[d.id]=v; });
+        pendings=next; renderPending();
+      }, ()=>{});
+    }catch(e){}
+  }
+  isAdmin=on;
+  if(!on){ viewingArchive=false; document.getElementById("btnBack").classList.remove("on"); render(); }
+  renderAdmin();
+  if(on) setTimeout(()=>document.getElementById("adminEditor").scrollIntoView({behavior:"smooth"}),100);
+}
+
+/* Primera visita: mostrar ayuda */
+if(!store.get("cripto-seen-help-v2",false)){ open("helpModal"); store.set("cripto-seen-help-v2",true); }
+
+renderDate(); render(); renderArchive(); tick(); setInterval(tick,1000);
+</script>
+<script type="module">
+/* ===== Firebase: base de datos y acceso del administrador ===== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB7U9So-0MBfL5r-yg2Eu2URFDR5mKdo6A",
+  authDomain: "encryptado.firebaseapp.com",
+  projectId: "encryptado",
+  storageBucket: "encryptado.firebasestorage.app",
+  messagingSenderId: "721887035889",
+  appId: "1:721887035889:web:549f6f1f290c7c4429c450"
+};
+const ADMIN_EMAIL = "j.lozvil@gmail.com";
+
+const app = initializeApp(firebaseConfig);
+const fs = getFirestore(app);
+const auth = getAuth(app);
+
+/* Adaptador con la misma forma que usa el resto de la página */
+db = {
+  collection: path => ({
+    add: d => addDoc(collection(fs, path), d),
+    doc: id => ({ set: d => setDoc(doc(fs, path, id), d), delete: () => deleteDoc(doc(fs, path, id)) }),
+    onSnapshot: (next, err) => onSnapshot(collection(fs, path),
+      s => next({ docs: s.docs.map(d => ({ id: d.id, data: () => d.data() })) }), err)
+  })
+};
+startCrypticsListener();
+
+onAuthStateChanged(auth, u => {
+  const ok = !!u && u.emailVerified && (u.email || "").toLowerCase() === ADMIN_EMAIL;
+  if (u && !ok) { signOut(auth); toast("Esa cuenta no es de administrador."); }
+  if (ok !== isOwner) setOwner(ok);
+});
+window.encLogin = async () => {
+  try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+  catch (e) { if (e && e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") toast("No se pudo iniciar sesión. Inténtalo de nuevo."); }
+};
+window.encLogout = () => signOut(auth);
+</script>
+</body>
+</html>
