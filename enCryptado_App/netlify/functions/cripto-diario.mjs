@@ -2,8 +2,10 @@
 // lo comprueba con código y lo deja en Firestore como propuesta pendiente
 // (colección "pending") para que el administrador lo apruebe desde la web.
 //
-// Variables de entorno necesarias (Netlify → Site configuration → Environment variables):
-//   ANTHROPIC_API_KEY      clave de la API de Claude
+// Variables de entorno necesarias (Netlify → Project configuration → Environment variables):
+//   GEMINI_API_KEY         clave gratuita de Google AI Studio (se usa si existe)
+//   GEMINI_MODEL           opcional; por defecto "gemini-flash-latest"
+//   ANTHROPIC_API_KEY      alternativa de pago: clave de la API de Claude (se usa si no hay GEMINI_API_KEY)
 //   FIREBASE_PROJECT_ID    encryptado
 //   FIREBASE_CLIENT_EMAIL  "client_email" del archivo .json de la cuenta de servicio
 //   FIREBASE_PRIVATE_KEY   "private_key" del mismo archivo (todo, con BEGIN y END)
@@ -93,6 +95,19 @@ Responde SOLO con este JSON:
 {"clue":"frase sin el número de letras","a":"RESPUESTA","d":"definición","i":"indicador o cadena vacía","m":"relleno","mecanismo":"${mech}","letras":"LETRAS","ex":"Explicación breve, p. ej.: Anagrama. «Mal» indica que las letras de CORTAS están desordenadas: dan CASTOR, un roedor."}`;
 }
 
+async function askGemini(text) {
+  const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: "POST",
+    headers: { "x-goog-api-key": process.env.GEMINI_API_KEY, "content-type": "application/json" },
+    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text }] }], generationConfig: { responseMimeType: "application/json", temperature: 1 } }),
+  });
+  if (!r.ok) throw new Error(`API de Gemini: ${r.status} ${await r.text()}`);
+  const data = await r.json();
+  const out = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
+  return JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1));
+}
+
 async function askClaude(text) {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -109,6 +124,7 @@ const ymd = d => d.toISOString().slice(0, 10);
 
 export default async () => {
   const t0 = Date.now();
+  if (!process.env.GEMINI_API_KEY && !process.env.ANTHROPIC_API_KEY) { console.log("Falta GEMINI_API_KEY (o ANTHROPIC_API_KEY)."); return; }
   const fs = db();
   const [cr, pe] = await Promise.all([fs.collection("cryptics").get(), fs.collection("pending").get()]);
   if (pe.size >= MAX_PENDING) { console.log(`Hay ${pe.size} propuestas sin revisar: hoy no genero más.`); return; }
@@ -122,7 +138,7 @@ export default async () => {
   for (let attempt = 0; attempt < 2 && Date.now() - t0 < 13000; attempt++) {
     const mech = pick(MECHS), lvl = pick(LEVELS);
     try {
-      const o = await askClaude(prompt(mech, lvl, avoid));
+      const o = process.env.GEMINI_API_KEY ? await askGemini(prompt(mech, lvl, avoid)) : await askClaude(prompt(mech, lvl, avoid));
       const built = buildClue(o), chk = verify({ ...o, mecanismo: o.mecanismo || mech });
       if (built.errors.length || chk === "bad" || avoid.includes(LT(o.a))) {
         console.log("Descartado:", o.a, built.errors.join("; "), chk); continue;
